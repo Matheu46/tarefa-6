@@ -22,25 +22,68 @@ int A_state = 0;    //Botao A está pressionado?
 // Estado do LED vermelho
 int led_vermelho_aceso = 0;
 
-void SinalAberto(){
+void SinalAberto(uint8_t *ssd, struct render_area *frame_area){
     gpio_put(LED_R_PIN, 0);
     gpio_put(LED_G_PIN, 1);
     gpio_put(LED_B_PIN, 0);   
     led_vermelho_aceso = 0;
+
+    char *text[] = {
+    "  SINAL ABERTO   ",
+    " ATRAVESSAR COM  ",
+    "     CUIDADO     "};
+
+    int text_size = count_of(text);
+    int y = 10;
+
+    for (uint i = 0; i < count_of(text); i++)
+    {
+        ssd1306_draw_string(ssd, 5, y, text[i]);
+        y += 16;
+    }
+    render_on_display(ssd, frame_area);
 }
 
-void SinalAtencao(){
+void SinalAtencao(uint8_t *ssd, struct render_area *frame_area){
     gpio_put(LED_R_PIN, 1);
     gpio_put(LED_G_PIN, 1);
     gpio_put(LED_B_PIN, 0);
     led_vermelho_aceso = 0;
+
+    char *text[] = {
+    "SINAL DE ATENCAO",
+    "   PREPARE-SE   "};
+
+    int text_size = count_of(text);
+    int y = 10;
+
+    for (uint i = 0; i < text_size; i++)
+    {
+        ssd1306_draw_string(ssd, 0, y, text[i]);
+        y += 16;
+    }
+    render_on_display(ssd, frame_area);
 }
 
-void SinalFechado(){
+void SinalFechado(uint8_t *ssd, struct render_area *frame_area){
     gpio_put(LED_R_PIN, 1);
     gpio_put(LED_G_PIN, 0);
     gpio_put(LED_B_PIN, 0);
     led_vermelho_aceso = 1;
+
+    char *text[] = {
+    "  SINAL FECHADO  ",
+    "     AGUARDE     "};
+
+    int text_size = count_of(text);
+    int y = 10;
+
+    for (uint i = 0; i < text_size; i++)
+    {
+        ssd1306_draw_string(ssd, 5, y, text[i]);
+        y += 16;
+    }
+    render_on_display(ssd, frame_area);
 }
 
 int WaitWithRead(int timeMS){
@@ -52,6 +95,11 @@ int WaitWithRead(int timeMS){
         sleep_ms(100);
     }
     return 0;
+}
+
+void LimparDisplay(uint8_t *ssd, struct render_area *frame_area) {
+    memset(ssd, 0, ssd1306_buffer_length);
+    render_on_display(ssd, frame_area);
 }
 
 
@@ -103,99 +151,30 @@ int main()
     while(true){
 
         // SINAL FECHADO PARA OS PEDESTRES
-        SinalFechado();
-        char *text[] = {
-        "  SINAL FECHADO  ",
-        "     AGUARDE     "};
-
-        int y = 10;
-        for (uint i = 0; i < count_of(text); i++)
-        {
-            ssd1306_draw_string(ssd, 5, y, text[i]);
-            y += 16;
-        }
-        render_on_display(ssd, &frame_area);
+        SinalFechado(ssd, &frame_area);
         A_state = WaitWithRead(8000);   //espera com leitura do botäo
-        //limpar display
-        memset(ssd, 0, ssd1306_buffer_length);
-        render_on_display(ssd, &frame_area);                      
+        LimparDisplay(ssd, &frame_area);                 
 
 
         if(A_state){               //ALGUEM APERTOU O BOTAO - SAI DO SEMAFORO NORMAL
-            //SINAL AMARELO PARA OS CARROS POR 5s
-            SinalAtencao();
-            char *text[] = {
-            "SINAL DE ATENCAO",
-            "   PREPARE-SE   "};
-
-            int y = 10;
-            for (uint i = 0; i < count_of(text); i++)
-            {
-                ssd1306_draw_string(ssd, 0, y, text[i]);
-                y += 16;
-            }
-            render_on_display(ssd, &frame_area);
+            SinalAtencao(ssd, &frame_area);
             sleep_ms(5000);
-            //limpar display
-            memset(ssd, 0, ssd1306_buffer_length);
-            render_on_display(ssd, &frame_area);   
+            LimparDisplay(ssd, &frame_area); 
 
             // SINAL ABERTO PARA OS PEDESTRES
-            SinalAberto();
-            char *text_aberto[] = {
-            "  SINAL ABERTO   ",
-            " ATRAVESSAR COM  ",
-            "     CUIDADO     "};
-
-            y = 10;
-            for (uint i = 0; i < count_of(text_aberto); i++)
-            {
-                ssd1306_draw_string(ssd, 5, y, text_aberto[i]);
-                y += 16;
-            }
-            render_on_display(ssd, &frame_area);
+            SinalAberto(ssd, &frame_area);
             A_state = WaitWithRead(8000);   //espera com leitura do botäo
-            //limpar display
-            memset(ssd, 0, ssd1306_buffer_length);
-            render_on_display(ssd, &frame_area); 
+            LimparDisplay(ssd, &frame_area); 
 
         }else{                          //NINGUEM APERTOU O BOTAO - CONTINUA NO SEMAFORO NORMAL
-            SinalAtencao();
-            char *text[] = {
-            "SINAL DE ATENCAO",
-            "   PREPARE-SE   "};
-
-            int y = 10;
-            for (uint i = 0; i < count_of(text); i++)
-            {
-                ssd1306_draw_string(ssd, 0, y, text[i]);
-                y += 16;
-            }
-            render_on_display(ssd, &frame_area);
+            SinalAtencao(ssd, &frame_area);
             sleep_ms(2000);
-            //limpar display
-            memset(ssd, 0, ssd1306_buffer_length);
-            render_on_display(ssd, &frame_area);   
-
+            LimparDisplay(ssd, &frame_area);   
 
             // SINAL ABERTO PARA OS PEDESTRES
-            SinalAberto();
-            char *text_aberto[] = {
-            "  SINAL ABERTO   ",
-            " ATRAVESSAR COM  ",
-            "     CUIDADO     "};
-
-            y = 10;
-            for (uint i = 0; i < count_of(text_aberto); i++)
-            {
-                ssd1306_draw_string(ssd, 5, y, text_aberto[i]);
-                y += 16;
-            }
-            render_on_display(ssd, &frame_area);
+            SinalAberto(ssd, &frame_area);
             A_state = WaitWithRead(8000);   //espera com leitura do botäo
-            //limpar display
-            memset(ssd, 0, ssd1306_buffer_length);
-            render_on_display(ssd, &frame_area); 
+            LimparDisplay(ssd, &frame_area); 
         }
                 
     }
