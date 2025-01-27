@@ -19,14 +19,11 @@ const uint I2C_SCL = 15;
 
 int A_state = 0;    //Botao A está pressionado?
 
-// Estado do LED vermelho
-int led_vermelho_aceso = 0;
 
 void SinalAberto(uint8_t *ssd, struct render_area *frame_area){
     gpio_put(LED_R_PIN, 0);
     gpio_put(LED_G_PIN, 1);
     gpio_put(LED_B_PIN, 0);   
-    led_vermelho_aceso = 0;
 
     char *text[] = {
     "  SINAL ABERTO   ",
@@ -36,7 +33,7 @@ void SinalAberto(uint8_t *ssd, struct render_area *frame_area){
     int text_size = count_of(text);
     int y = 10;
 
-    for (uint i = 0; i < count_of(text); i++)
+    for (uint i = 0; i < text_size; i++)
     {
         ssd1306_draw_string(ssd, 5, y, text[i]);
         y += 16;
@@ -48,7 +45,6 @@ void SinalAtencao(uint8_t *ssd, struct render_area *frame_area){
     gpio_put(LED_R_PIN, 1);
     gpio_put(LED_G_PIN, 1);
     gpio_put(LED_B_PIN, 0);
-    led_vermelho_aceso = 0;
 
     char *text[] = {
     "SINAL DE ATENCAO",
@@ -69,7 +65,6 @@ void SinalFechado(uint8_t *ssd, struct render_area *frame_area){
     gpio_put(LED_R_PIN, 1);
     gpio_put(LED_G_PIN, 0);
     gpio_put(LED_B_PIN, 0);
-    led_vermelho_aceso = 1;
 
     char *text[] = {
     "  SINAL FECHADO  ",
@@ -89,7 +84,7 @@ void SinalFechado(uint8_t *ssd, struct render_area *frame_area){
 int WaitWithRead(int timeMS){
     for(int i = 0; i < timeMS; i = i+100){
         A_state = !gpio_get(BTN_A_PIN);
-        if(A_state == 1 && led_vermelho_aceso == 1){
+        if(A_state == 1){
             return 1;
         }
         sleep_ms(100);
@@ -163,7 +158,7 @@ int main()
 
             // SINAL ABERTO PARA OS PEDESTRES
             SinalAberto(ssd, &frame_area);
-            A_state = WaitWithRead(8000);   //espera com leitura do botäo
+            sleep_ms(8000);
             LimparDisplay(ssd, &frame_area); 
 
         }else{                          //NINGUEM APERTOU O BOTAO - CONTINUA NO SEMAFORO NORMAL
@@ -173,7 +168,7 @@ int main()
 
             // SINAL ABERTO PARA OS PEDESTRES
             SinalAberto(ssd, &frame_area);
-            A_state = WaitWithRead(8000);   //espera com leitura do botäo
+            sleep_ms(8000);
             LimparDisplay(ssd, &frame_area); 
         }
                 
